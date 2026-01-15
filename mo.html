@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الأرشفة الذكي - الإصدار الاحترافي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --primary: #4e54c8;
+            --secondary: #8f94fb;
+            --success: #00b894;
+            --danger: #d63031;
+            --dark: #2d3436;
+            --glass: rgba(255, 255, 255, 0.9);
+        }
+
+        * { transition: all 0.3s ease; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #4e54c8;
+            background: -webkit-linear-gradient(to right, #8f94fb, #4e54c8);
+            background: linear-gradient(to right, #8f94fb, #4e54c8);
+            overflow-x: hidden;
+        }
+
+        /* --- واجهة الدخول --- */
+        #authSection {
+            width: 100%;
+            max-width: 400px;
+            perspective: 1000px;
+        }
+
+        .auth-card {
+            background: var(--glass);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .auth-card h2 { color: var(--primary); margin-bottom: 30px; }
+
+        .input-group { position: relative; margin-bottom: 20px; }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .input-group input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(78, 84, 200, 0.2); }
+
+        .btn-main {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(78, 84, 200, 0.3);
+        }
+
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(78, 84, 200, 0.4); }
+
+        .toggle-link { margin-top: 20px; display: block; color: #666; cursor: pointer; font-size: 14px; }
+        .toggle-link:hover { color: var(--primary); text-decoration: underline; }
+
+        /* --- واجهة النظام الرئيسي --- */
+        #mainContainer {
+            display: none;
+            width: 95%;
+            max-width: 1100px;
+            background: var(--glass);
+            margin: 20px;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            backdrop-filter: blur(15px);
+            animation: fadeInDown 0.8s;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid rgba(0,0,0,0.05);
+            padding-bottom: 20px;
+        }
+
+        .tool-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            margin-bottom: 30px;
+        }
+
+        .search-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .search-wrapper input {
+            flex: 1;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid #eee;
+            font-size: 16px;
+        }
+
+        .btn-search {
+            padding: 0 30px;
+            background: var(--dark);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        .btn-search:hover { background: var(--primary); }
+
+        /* --- الجدول --- */
+        table { width: 100%; border-collapse: separate; border-spacing: 0 15px; }
+        th { padding: 15px; text-align: right; color: #777; font-weight: 500; }
+        td { background: white; padding: 20px; border-radius: 0; }
+        td:first-child { border-radius: 0 15px 15px 0; }
+        td:last-child { border-radius: 15px 0 0 15px; }
+
+        tr:hover td { transform: scale(1.01); box-shadow: 0 5px 15px rgba(0,0,0,0.05); cursor: pointer; }
+
+        .seq-badge {
+            background: var(--primary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .action-btns button {
+            margin-left: 5px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div id="authSection" class="animate__animated animate__zoomIn">
+    <div class="auth-card" id="loginBox">
+        <h2>🔒 تسجيل الدخول</h2>
+        <div class="input-group">
+            <input type="text" id="userIn" placeholder="اسم المستخدم">
+        </div>
+        <div class="input-group">
+            <input type="password" id="passIn" placeholder="كلمة المرور">
+        </div>
+        <button class="btn-main" onclick="doLogin()">دخول</button>
+        <span class="toggle-link" onclick="swapAuth(true)">إنشاء حساب مستخدم جديد</span>
+    </div>
+
+    <div class="auth-card" id="regBox" style="display: none;">
+        <h2>📝 حساب جديد</h2>
+        <div class="input-group">
+            <input type="text" id="userReg" placeholder="اختر اسم مستخدم">
+        </div>
+        <div class="input-group">
+            <input type="password" id="passReg" placeholder="اختر كلمة مرور">
+        </div>
+        <button class="btn-main" style="background: var(--success);" onclick="doRegister()">تسجيل الحساب</button>
+        <span class="toggle-link" onclick="swapAuth(false)">لديك حساب؟ سجل دخولك</span>
+    </div>
+</div>
+
+<div id="mainContainer">
+    <div class="header">
+        <h2 style="margin: 0; color: var(--primary);">📂 أرشفة ملفات الزبائن</h2>
+        <div style="text-align: left;">
+            <span id="userNameDisplay" style="margin-left: 15px; font-weight: 600;"></span>
+            <button onclick="location.reload()" style="background: var(--danger); color: white; border: none; padding: 8px 15px; border-radius: 10px; cursor: pointer;">خروج</button>
+        </div>
+    </div>
+
+    <div class="tool-box animate__animated animate__fadeInUp">
+        <div class="input-group" style="margin: 0;">
+            <label style="display: block; margin-bottom: 5px; font-size: 13px;">اسم الزبون</label>
+            <input type="text" id="cName" placeholder="الاسم الكامل">
+        </div>
+        <div class="input-group" style="margin: 0;">
+            <label style="display: block; margin-bottom: 5px; font-size: 13px;">رقم الهاتف</label>
+            <input type="text" id="cPhone" placeholder="07xxxxxxxx">
+        </div>
+        <div class="input-group" style="margin: 0;">
+            <label style="display: block; margin-bottom: 5px; font-size: 13px;">ملف PDF</label>
+            <input type="file" id="cFile" accept=".pdf" style="padding: 8px;">
+        </div>
+        <button class="btn-main" onclick="addEntry()" style="margin-top: 18px;">➕ إضافة السجل</button>
+    </div>
+
+    <div class="search-wrapper">
+        <input type="text" id="searchInp" placeholder="ابحث باسم الزبون أو رقم التسلسل..." onkeyup="search()">
+        <button class="btn-search" onclick="search()">بحث 🔍</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>التسلسل</th>
+                <th>اسم الزبون</th>
+                <th>الهاتف</th>
+                <th>الإجراءات</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    // --- منطق المستخدمين ---
+    let users = JSON.parse(localStorage.getItem('app_users')) || [];
+
+    function swapAuth(isReg) {
+        const lb = document.getElementById('loginBox');
+        const rb = document.getElementById('regBox');
+        if(isReg) {
+            lb.className = "auth-card animate__animated animate__fadeOutLeft";
+            setTimeout(() => {
+                lb.style.display = 'none';
+                rb.style.display = 'block';
+                rb.className = "auth-card animate__animated animate__fadeInRight";
+            }, 300);
+        } else {
+            rb.className = "auth-card animate__animated animate__fadeOutRight";
+            setTimeout(() => {
+                rb.style.display = 'none';
+                lb.style.display = 'block';
+                lb.className = "auth-card animate__animated animate__fadeInLeft";
+            }, 300);
+        }
+    }
+
+    function doRegister() {
+        const u = document.getElementById('userReg').value;
+        const p = document.getElementById('passReg').value;
+        if(!u || !p) return alert("يرجى ملء الحقول");
+        if(users.find(x => x.u === u)) return alert("المستخدم موجود!");
+        
+        users.push({u, p});
+        localStorage.setItem('app_users', JSON.stringify(users));
+        alert("تم التسجيل! يمكنك الدخول الآن.");
+        swapAuth(false);
+    }
+
+    function doLogin() {
+        const u = document.getElementById('userIn').value;
+        const p = document.getElementById('passIn').value;
+        const found = users.find(x => x.u === u && x.p === p);
+
+        if(found) {
+            document.getElementById('authSection').className = "animate__animated animate__zoomOut";
+            setTimeout(() => {
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'block';
+                document.getElementById('userNameDisplay').innerText = "👤 " + u;
+                document.body.style.alignItems = "flex-start";
+                document.body.style.paddingTop = "40px";
+            }, 500);
+        } else {
+            const card = document.getElementById('loginBox');
+            card.classList.add('animate__animated', 'animate__headShake');
+            setTimeout(() => card.classList.remove('animate__headShake'), 500);
+            alert("خطأ في البيانات!");
+        }
+    }
+
+    // --- منطق الأرشفة ---
+    let data = JSON.parse(localStorage.getItem('arch_data')) || [];
+    let lastId = parseInt(localStorage.getItem('arch_id')) || 0;
+
+    function addEntry() {
+        const name = document.getElementById('cName').value;
+        const phone = document.getElementById('cPhone').value;
+        const file = document.getElementById('cFile').files[0];
+
+        if(!name || !phone || !file) return alert("يرجى إكمال الحقول");
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            lastId++;
+            data.push({ id: lastId, name, phone, pdf: e.target.result });
+            localStorage.setItem('arch_id', lastId);
+            save();
+            // مسح الحقول
+            document.getElementById('cName').value = '';
+            document.getElementById('cPhone').value = '';
+            document.getElementById('cFile').value = '';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function save() {
+        localStorage.setItem('arch_data', JSON.stringify(data));
+        render();
+    }
+
+    function render(list = data) {
+        const body = document.getElementById('tableBody');
+        body.innerHTML = '';
+        list.forEach(item => {
+            const row = document.createElement('tr');
+            row.className = "animate__animated animate__fadeIn";
+            row.innerHTML = `
+                <td><span class="seq-badge">${item.id}</span></td>
+                <td><b>${item.name}</b></td>
+                <td>${item.phone}</td>
+                <td class="action-btns">
+                    <button style="background: var(--primary); color:white;" onclick="view('${item.pdf}')">👁️ عرض</button>
+                    <button style="background: var(--danger); color:white;" onclick="del(${item.id})">🗑️ حذف</button>
+                </td>
+            `;
+            body.appendChild(row);
+        });
+    }
+
+    function view(pdf) {
+        const win = window.open();
+        win.document.write(`<iframe src="${pdf}" frameborder="0" style="width:100%; height:100%;"></iframe>`);
+    }
+
+    function del(id) {
+        if(confirm("هل تريد حذف هذا السجل؟")) {
+            data = data.filter(x => x.id !== id);
+            save();
+        }
+    }
+
+    function search() {
+        const q = document.getElementById('searchInp').value.toLowerCase();
+        const filtered = data.filter(x => x.name.toLowerCase().includes(q) || x.id.toString().includes(q));
+        render(filtered);
+    }
+
+    render();
+</script>
+</body>
+</html>
